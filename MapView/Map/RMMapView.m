@@ -536,6 +536,7 @@
         }
     }
 
+    // [FIX - Everdune] Add check on showLogoBug
     if (_logoBug && _showLogoBug)
     {
         if ( ! [[viewController.view valueForKeyPath:@"constraints.firstItem"]  containsObject:_logoBug] &&
