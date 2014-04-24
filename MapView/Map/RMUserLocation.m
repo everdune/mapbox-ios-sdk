@@ -46,6 +46,7 @@
 @synthesize location = _location;
 @synthesize heading = _heading;
 @synthesize hasCustomLayer = _hasCustomLayer;
+@synthesize rotateWithAngle = _rotateWithAngle;
 
 - (id)initWithMapView:(RMMapView *)aMapView coordinate:(CLLocationCoordinate2D)aCoordinate andTitle:(NSString *)aTitle
 {

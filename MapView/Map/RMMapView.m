@@ -2958,8 +2958,11 @@
             if (annotation.layer == nil)
                 continue;
 
-            if ([annotation.layer isKindOfClass:[RMMarker class]])
-                annotation.layer.transform = _annotationTransform;
+            if (!annotation.isUserLocationAnnotation || !((RMUserLocation *)annotation).rotateWithAngle) {
+                if ([annotation.layer isKindOfClass:[RMMarker class]]) {
+                    annotation.layer.transform = _annotationTransform;
+                }
+            }
 
             // Use the zPosition property to order the layer hierarchy
             if ( ! [_visibleAnnotations containsObject:annotation])
@@ -3013,8 +3016,12 @@
                         if (annotation.layer == nil)
                             continue;
 
-                        if ([annotation.layer isKindOfClass:[RMMarker class]])
-                            annotation.layer.transform = _annotationTransform;
+                        if (!annotation.isUserLocationAnnotation || !((RMUserLocation *)annotation).rotateWithAngle) {
+                            if ([annotation.layer isKindOfClass:[RMMarker class]]) {
+                                annotation.layer.transform = _annotationTransform;
+                            }
+                        }
+                        
 
                         if (![_visibleAnnotations containsObject:annotation])
                         {
@@ -3676,9 +3683,13 @@
     
     _compassButton.alpha = 1.0;
     
-    for (RMAnnotation *annotation in _annotations)
-        if ([annotation.layer isKindOfClass:[RMMarker class]])
+    for (RMAnnotation *annotation in _annotations) {
+        if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) continue;
+        
+        if ([annotation.layer isKindOfClass:[RMMarker class]]) {
             annotation.layer.transform = _annotationTransform;
+        }
+    }
     
     [self correctPositionOfAllAnnotations];
 }
@@ -3743,9 +3754,13 @@
 
                              _compassButton.alpha = 1.0;
 
-                             for (RMAnnotation *annotation in _annotations)
-                                 if ([annotation.layer isKindOfClass:[RMMarker class]])
+                             for (RMAnnotation *annotation in _annotations) {
+                                 if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) continue;
+
+                                 if ([annotation.layer isKindOfClass:[RMMarker class]]) {
                                      annotation.layer.transform = _annotationTransform;
+                                 }
+                             }
 
                              [self correctPositionOfAllAnnotations];
                          }

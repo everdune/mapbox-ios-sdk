@@ -46,4 +46,7 @@
 * This property is `nil` if the user location tracking mode is not `RMUserTrackingModeFollowWithHeading`. */
 @property (nonatomic, readonly) CLHeading *heading;
 
+
+@property (nonatomic, assign) BOOL rotateWithAngle;
+
 @end
