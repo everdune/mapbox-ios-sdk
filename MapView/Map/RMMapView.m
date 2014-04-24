@@ -3684,7 +3684,9 @@
     _compassButton.alpha = 1.0;
     
     for (RMAnnotation *annotation in _annotations) {
-        if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) continue;
+        if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) {
+            continue;
+        }
         
         if ([annotation.layer isKindOfClass:[RMMarker class]]) {
             annotation.layer.transform = _annotationTransform;
@@ -3755,7 +3757,9 @@
                              _compassButton.alpha = 1.0;
 
                              for (RMAnnotation *annotation in _annotations) {
-                                 if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) continue;
+                                 if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) {
+                                     continue;    
+                                 }
 
                                  if ([annotation.layer isKindOfClass:[RMMarker class]]) {
                                      annotation.layer.transform = _annotationTransform;
