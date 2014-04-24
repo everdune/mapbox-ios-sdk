@@ -202,6 +202,7 @@
     UIPopoverController *_attributionPopover;
 
     CGAffineTransform _mapTransform;
+    CGAffineTransform _compassTransform;
     CATransform3D _annotationTransform;
 
     NSOperationQueue *_moveDelegateQueue;
@@ -337,6 +338,7 @@
     self.displayHeadingCalibration = YES;
 
     _mapTransform = CGAffineTransformIdentity;
+    _compassTransform = CGAffineTransformIdentity;
     _annotationTransform = CATransform3DIdentity;
 
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -3346,11 +3348,12 @@
                              animations:^(void)
                              {
                                  _mapTransform = CGAffineTransformIdentity;
+                                 _compassTransform = CGAffineTransformIdentity;
                                  _annotationTransform = CATransform3DIdentity;
 
                                  _mapScrollView.transform = _mapTransform;
-                                 _compassButton.transform = _mapTransform;
                                  _overlayView.transform   = _mapTransform;
+                                 _compassButton.transform = _compassTransform;
 
                                  _compassButton.alpha = 0;
 
@@ -3391,11 +3394,12 @@
                              animations:^(void)
                              {
                                  _mapTransform = CGAffineTransformIdentity;
+                                 _compassTransform = CGAffineTransformIdentity;
                                  _annotationTransform = CATransform3DIdentity;
 
                                  _mapScrollView.transform = _mapTransform;
-                                 _compassButton.transform = _mapTransform;
                                  _overlayView.transform   = _mapTransform;
+                                 _compassButton.transform = _compassTransform;
 
                                  _compassButton.alpha = 0;
 
@@ -3699,12 +3703,29 @@
 }
 
 - (void)setAngle:(CGFloat)angle {
-    _mapTransform = CGAffineTransformMakeRotation(angle);
-    _annotationTransform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(-angle));
+    CGFloat tx = self.centerOffset.width;
+    CGFloat ty = self.centerOffset.height;
+    
+    // Rotate at center offset
+    CGAffineTransform mapTransform = CGAffineTransformMakeTranslation(tx, ty);
+    mapTransform = CGAffineTransformRotate(mapTransform, angle);
+    mapTransform = CGAffineTransformTranslate(mapTransform, -tx, -ty);
+
+    _mapTransform = mapTransform;
+    
+    // Rotate back annotations
+    CGAffineTransform annotationTransform = CGAffineTransformMakeTranslation(tx, ty);
+    annotationTransform = CGAffineTransformRotate(annotationTransform, -angle);
+    annotationTransform = CGAffineTransformTranslate(annotationTransform, -tx, -ty);
+
+    _annotationTransform = CATransform3DMakeAffineTransform(annotationTransform);
+    
+    CGAffineTransform compassTransform = CGAffineTransformMakeRotation(angle);
+    _compassTransform = compassTransform;
     
     _mapScrollView.transform = _mapTransform;
-    _compassButton.transform = _mapTransform;
     _overlayView.transform   = _mapTransform;
+    _compassButton.transform = _compassTransform;
     
     _compassButton.alpha = 1.0;
     
@@ -3756,46 +3777,14 @@
     if (_delegateHasDidUpdateUserLocation)
         [_delegate mapView:self didUpdateUserLocation:self.userLocation];
 
-    if (newHeading.trueHeading != 0 && ((self.userTrackingMode == RMUserTrackingModeFollowWithHeading) || (self.userTrackingMode == RMUserTrackingModeFollowWithCourse)))
+    if (newHeading.trueHeading != 0 && (self.userTrackingMode == RMUserTrackingModeFollowWithHeading))
     {
         if (_userHeadingTrackingView.alpha < 1.0)
             [UIView animateWithDuration:0.5 animations:^(void) { _userHeadingTrackingView.alpha = 1.0; }];
 
-        [CATransaction begin];
-        [CATransaction setAnimationDuration:0.5];
-        [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
-
-        [UIView animateWithDuration:0.5
-                              delay:0.0
-                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
-                         animations:^(void)
-                         {
-                             CGFloat angle = (M_PI / -180) * newHeading.trueHeading;
-
-                             _mapTransform = CGAffineTransformMakeRotation(angle);
-                             _annotationTransform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(-angle));
-
-                             _mapScrollView.transform = _mapTransform;
-                             _compassButton.transform = _mapTransform;
-                             _overlayView.transform   = _mapTransform;
-
-                             _compassButton.alpha = 1.0;
-
-                             for (RMAnnotation *annotation in _annotations) {
-                                 if (annotation.rotateWithAngle) {
-                                     continue;    
-                                 }
-
-                                 if ([annotation.layer isKindOfClass:[RMMarker class]]) {
-                                     annotation.layer.transform = _annotationTransform;
-                                 }
-                             }
-
-                             [self correctPositionOfAllAnnotations];
-                         }
-                         completion:nil];
-
-        [CATransaction commit];
+        CGFloat angle = (M_PI / -180) * newHeading.trueHeading;
+        
+        [self setAngle:angle animated:YES];
     }
 }
 
