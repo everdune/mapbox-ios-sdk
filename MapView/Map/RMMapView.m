@@ -3688,18 +3688,19 @@
         [CATransaction begin];
         [CATransaction setAnimationDuration:0.5];
         [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
-    
+        
         [UIView animateWithDuration:0.5
-                          delay:0.0
-                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
-                     animations:^(void)
-     {
-         self.angle = angle;
-     }
-                     completion:nil];
-    
-    [CATransaction commit];
-
+                              delay:0.0
+                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                         animations:^(void) {
+                             self.angle = angle;
+                         }
+                         completion:nil];
+        
+        [CATransaction commit];
+    } else {
+        self.angle = angle;
+    }
 }
 
 
