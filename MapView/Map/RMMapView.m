@@ -953,11 +953,25 @@
     [self setCenterProjectedPoint:[_projection coordinateToProjectedPoint:centerCoordinate] animated:animated];
 }
 
+- (void)setCenterOffset:(CGSize)centerOffset {
+    if (!CGSizeEqualToSize(centerOffset, _centerOffset)) {
+        CLLocationCoordinate2D centerCoord = [self centerCoordinate];
+        
+        _centerOffset = centerOffset;
+        
+        [self setCenterCoordinate:centerCoord];
+    }
+}
+
+
 // ===
 
 - (RMProjectedPoint)centerProjectedPoint
 {
-    CGPoint center = CGPointMake(_mapScrollView.contentOffset.x + _mapScrollView.bounds.size.width/2.0, _mapScrollView.contentSize.height - (_mapScrollView.contentOffset.y + _mapScrollView.bounds.size.height/2.0));
+    CGFloat x = _mapScrollView.contentOffset.x + _mapScrollView.bounds.size.width / 2.0 - self.centerOffset.width;
+    CGFloat y = _mapScrollView.contentSize.height - (_mapScrollView.contentOffset.y + _mapScrollView.bounds.size.height / 2.0) - self.centerOffset.height;
+    
+    CGPoint center = CGPointMake(x, y);
 
     RMProjectedRect planetBounds = _projection.planetBounds;
     RMProjectedPoint normalizedProjectedPoint;
@@ -987,11 +1001,13 @@
 	RMProjectedPoint normalizedProjectedPoint;
 	normalizedProjectedPoint.x = centerProjectedPoint.x + fabs(planetBounds.origin.x);
 	normalizedProjectedPoint.y = centerProjectedPoint.y + fabs(planetBounds.origin.y);
+    
+    CGFloat x = (normalizedProjectedPoint.x / _metersPerPixel - _mapScrollView.bounds.size.width/2.0) - self.centerOffset.width;
+    CGFloat y = (_mapScrollView.contentSize.height - ((normalizedProjectedPoint.y / _metersPerPixel) + _mapScrollView.bounds.size.height/2.0)) - self.centerOffset.height;
 
-    [_mapScrollView setContentOffset:CGPointMake(
-                                                 (normalizedProjectedPoint.x / _metersPerPixel - _mapScrollView.bounds.size.width/2.0) - self.centerOffset.width,
-                                                (_mapScrollView.contentSize.height - ((normalizedProjectedPoint.y / _metersPerPixel) + _mapScrollView.bounds.size.height/2.0)) + self.centerOffset.height)
-                           animated:animated];
+    CGPoint offset = CGPointMake(x, y);
+
+    [_mapScrollView setContentOffset:offset animated:animated];
 
 //    RMLog(@"setMapCenterProjectedPoint: {%f,%f} -> {%.0f,%.0f}", centerProjectedPoint.x, centerProjectedPoint.y, mapScrollView.contentOffset.x, mapScrollView.contentOffset.y);
 
@@ -1020,7 +1036,10 @@
 
 - (RMProjectedRect)projectedBounds
 {
-    CGPoint bottomLeft = CGPointMake(_mapScrollView.contentOffset.x, _mapScrollView.contentSize.height - (_mapScrollView.contentOffset.y + _mapScrollView.bounds.size.height));
+    CGFloat x = _mapScrollView.contentOffset.x - self.centerOffset.width;
+    CGFloat y = _mapScrollView.contentSize.height - (_mapScrollView.contentOffset.y + _mapScrollView.bounds.size.height) - self.centerOffset.height;
+    
+    CGPoint bottomLeft = CGPointMake(x, y);
 
     RMProjectedRect planetBounds = _projection.planetBounds;
     RMProjectedRect normalizedProjectedRect;
@@ -1048,10 +1067,14 @@
 	normalizedProjectedPoint.y = boundsRect.origin.y + fabs(planetBounds.origin.y);
 
     float zoomScale = _mapScrollView.zoomScale;
-    CGRect zoomRect = CGRectMake((normalizedProjectedPoint.x / _metersPerPixel) / zoomScale,
-                                 ((planetBounds.size.height - normalizedProjectedPoint.y - boundsRect.size.height) / _metersPerPixel) / zoomScale,
-                                 (boundsRect.size.width / _metersPerPixel) / zoomScale,
-                                 (boundsRect.size.height / _metersPerPixel) / zoomScale);
+
+    CGFloat x = (normalizedProjectedPoint.x / _metersPerPixel) / zoomScale - self.centerOffset.width;
+    CGFloat y = ((planetBounds.size.height - normalizedProjectedPoint.y - boundsRect.size.height) / _metersPerPixel) / zoomScale - self.centerOffset.height;
+    CGFloat width = (boundsRect.size.width / _metersPerPixel) / zoomScale;
+    CGFloat height = (boundsRect.size.height / _metersPerPixel) / zoomScale;
+    
+    CGRect zoomRect = CGRectMake(x, y, width, height);
+    
     [_mapScrollView zoomToRect:zoomRect animated:animated];
 }
 
