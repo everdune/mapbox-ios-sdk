@@ -953,14 +953,20 @@
     [self setCenterProjectedPoint:[_projection coordinateToProjectedPoint:centerCoordinate] animated:animated];
 }
 
-- (void)setCenterOffset:(CGSize)centerOffset {
+- (void)setCenterOffset:(CGSize)centerOffset animated:(BOOL)animated {
+    
     if (!CGSizeEqualToSize(centerOffset, _centerOffset)) {
         CLLocationCoordinate2D centerCoord = [self centerCoordinate];
         
         _centerOffset = centerOffset;
         
-        [self setCenterCoordinate:centerCoord];
+        [self setCenterCoordinate:centerCoord animated:animated];
     }
+}
+
+- (void)setCenterOffset:(CGSize)centerOffset {
+    // Default animated YES, like in setCenterProjectedPoint:
+    [self setCenterOffset:centerOffset animated:YES];
 }
 
 

@@ -198,6 +198,11 @@ typedef enum : NSUInteger {
 *   @param animated Whether to animate the change to the map center. */
 - (void)setCenterProjectedPoint:(RMProjectedPoint)aPoint animated:(BOOL)animated;
 
+/** Set the map center offset in pixels.
+*   @param centerOffset The offset to shift the center to another point of the view.
+*   @param animate Whether to animate the change to the new map center. */
+- (void)setCenterOffset:(CGSize)centerOffset animated:(BOOL)animated;
+
 /** Move the map center by a given delta. 
 *   @param delta A `CGSize` by which to move the map center. */
 - (void)moveBy:(CGSize)delta;
