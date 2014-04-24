@@ -218,7 +218,7 @@
     
     CLLocationDirection _currentCourse;
     
-    double _angle;
+    CGFloat _angle;
 }
 
 @synthesize decelerationMode = _decelerationMode;
@@ -3626,9 +3626,9 @@
     
     if (self.userTrackingMode == RMUserTrackingModeFollowWithCourse) {
         //[self locationManager:manager didUpdateCourse:newLocation.course];
-        self.currentCourse += 30;
+        _currentCourse += 30;
         
-        [self locationManager:manager didUpdateCourse:self.currentCourse];
+        [self locationManager:manager didUpdateCourse:_currentCourse];
     }
 
     if ( ! [_annotations containsObject:self.userLocation])
