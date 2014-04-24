@@ -186,6 +186,8 @@ typedef enum : NSUInteger {
 
 @property (nonatomic, assign) CGFloat angle;
 
+@property (nonatomic, assign) CGSize centerOffset;
+
 /** Set the map center to a given coordinate. 
 *   @param coordinate A coordinate to set as the map center. 
 *   @param animated Whether to animate the change to the map center. */

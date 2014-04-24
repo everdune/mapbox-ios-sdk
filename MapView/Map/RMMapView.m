@@ -243,6 +243,7 @@
 @synthesize hideAttribution = _hideAttribution;
 @synthesize showLogoBug = _showLogoBug;
 @synthesize angle = _angle;
+@synthesize centerOffset = _centerOffset;
 
 #pragma mark -
 #pragma mark Initialization
@@ -987,8 +988,9 @@
 	normalizedProjectedPoint.x = centerProjectedPoint.x + fabs(planetBounds.origin.x);
 	normalizedProjectedPoint.y = centerProjectedPoint.y + fabs(planetBounds.origin.y);
 
-    [_mapScrollView setContentOffset:CGPointMake(normalizedProjectedPoint.x / _metersPerPixel - _mapScrollView.bounds.size.width/2.0,
-                                                _mapScrollView.contentSize.height - ((normalizedProjectedPoint.y / _metersPerPixel) + _mapScrollView.bounds.size.height/2.0))
+    [_mapScrollView setContentOffset:CGPointMake(
+                                                 (normalizedProjectedPoint.x / _metersPerPixel - _mapScrollView.bounds.size.width/2.0) - self.centerOffset.width,
+                                                (_mapScrollView.contentSize.height - ((normalizedProjectedPoint.y / _metersPerPixel) + _mapScrollView.bounds.size.height/2.0)) + self.centerOffset.height)
                            animated:animated];
 
 //    RMLog(@"setMapCenterProjectedPoint: {%f,%f} -> {%.0f,%.0f}", centerProjectedPoint.x, centerProjectedPoint.y, mapScrollView.contentOffset.x, mapScrollView.contentOffset.y);
@@ -2958,7 +2960,7 @@
             if (annotation.layer == nil)
                 continue;
 
-            if (!annotation.isUserLocationAnnotation || !((RMUserLocation *)annotation).rotateWithAngle) {
+            if (!annotation.rotateWithAngle) {
                 if ([annotation.layer isKindOfClass:[RMMarker class]]) {
                     annotation.layer.transform = _annotationTransform;
                 }
@@ -3016,7 +3018,7 @@
                         if (annotation.layer == nil)
                             continue;
 
-                        if (!annotation.isUserLocationAnnotation || !((RMUserLocation *)annotation).rotateWithAngle) {
+                        if (!annotation.rotateWithAngle) {
                             if ([annotation.layer isKindOfClass:[RMMarker class]]) {
                                 annotation.layer.transform = _annotationTransform;
                             }
@@ -3684,7 +3686,7 @@
     _compassButton.alpha = 1.0;
     
     for (RMAnnotation *annotation in _annotations) {
-        if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) {
+        if (annotation.rotateWithAngle) {
             continue;
         }
         
@@ -3757,7 +3759,7 @@
                              _compassButton.alpha = 1.0;
 
                              for (RMAnnotation *annotation in _annotations) {
-                                 if (annotation.isUserLocationAnnotation && ((RMUserLocation *)annotation).rotateWithAngle) {
+                                 if (annotation.rotateWithAngle) {
                                      continue;    
                                  }
 
