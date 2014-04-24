@@ -217,8 +217,6 @@
 
     BOOL _rotateAtMinZoom;
     
-    CLLocationDirection _currentCourse;
-    
     CGFloat _angle;
 }
 
@@ -3661,10 +3659,7 @@
     _trackingHaloAnnotation.layer.hidden = ( ! CLLocationCoordinate2DIsValid(self.userLocation.coordinate) || newLocation.horizontalAccuracy > 10 || self.userLocation.hasCustomLayer);
     
     if (self.userTrackingMode == RMUserTrackingModeFollowWithCourse) {
-        //[self locationManager:manager didUpdateCourse:newLocation.course];
-        _currentCourse += 30;
-        
-        [self locationManager:manager didUpdateCourse:_currentCourse];
+        [self locationManager:manager didUpdateCourse:newLocation.course];
     }
 
     if ( ! [_annotations containsObject:self.userLocation])
