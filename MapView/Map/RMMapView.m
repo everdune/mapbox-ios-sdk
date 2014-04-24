@@ -83,6 +83,9 @@
 @property (nonatomic, assign) UIViewController *viewControllerPresentingAttribution;
 @property (nonatomic, retain) RMUserLocation *userLocation;
 
+// TODO: temp test course follow
+@property (nonatomic, assign) CLLocationDirection currentCourse;
+
 - (void)createMapView;
 
 - (void)registerMoveEventByUser:(BOOL)wasUserEvent;
@@ -3409,6 +3412,46 @@
 
             break;
         }
+        case RMUserTrackingModeFollowWithCourse:
+        {
+            self.showsUserLocation = YES;
+            
+            /*
+            _userHeadingTrackingView = [[UIImageView alloc] initWithImage:[self headingAngleImageForAccuracy:MAXFLOAT]];
+            
+            _userHeadingTrackingView.frame = CGRectMake((self.bounds.size.width  / 2) - (_userHeadingTrackingView.bounds.size.width / 2),
+                                                        (self.bounds.size.height / 2) - _userHeadingTrackingView.bounds.size.height,
+                                                        _userHeadingTrackingView.bounds.size.width,
+                                                        _userHeadingTrackingView.bounds.size.height * 2);
+            
+            _userHeadingTrackingView.contentMode = UIViewContentModeTop;
+            
+            _userHeadingTrackingView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin  |
+            UIViewAutoresizingFlexibleRightMargin |
+            UIViewAutoresizingFlexibleTopMargin   |
+            UIViewAutoresizingFlexibleBottomMargin;
+            
+            _userHeadingTrackingView.alpha = 0.0;
+            
+            [self insertSubview:_userHeadingTrackingView belowSubview:_overlayView];
+            */
+             
+             
+            if (self.zoom < 3)
+                [self zoomByFactor:exp2f(3 - [self zoom]) near:self.center animated:YES];
+            
+            if (self.userLocation)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                [self locationManager:_locationManager didUpdateToLocation:self.userLocation.location fromLocation:self.userLocation.location];
+#pragma clang diagnostic pop
+            
+            [self updateHeadingForDeviceOrientation];
+            
+            //[_locationManager startUpdatingHeading];
+            
+            break;
+        }
     }
 
     if (_delegateHasDidChangeUserTrackingMode)
@@ -3578,6 +3621,13 @@
     _accuracyCircleAnnotation.layer.hidden = newLocation.horizontalAccuracy <= 10 || self.userLocation.hasCustomLayer;
 
     _trackingHaloAnnotation.layer.hidden = ( ! CLLocationCoordinate2DIsValid(self.userLocation.coordinate) || newLocation.horizontalAccuracy > 10 || self.userLocation.hasCustomLayer);
+    
+    if (self.userTrackingMode == RMUserTrackingModeFollowWithCourse) {
+        //[self locationManager:manager didUpdateCourse:newLocation.course];
+        self.currentCourse += 30;
+        
+        [self locationManager:manager didUpdateCourse:self.currentCourse];
+    }
 
     if ( ! [_annotations containsObject:self.userLocation])
         [self addAnnotation:self.userLocation];
@@ -3591,6 +3641,58 @@
     return self.displayHeadingCalibration;
 }
 
+- (void)locationManager:(CLLocationManager *)manager didUpdateCourse:(CLLocationDirection)course {
+    if ( ! _showsUserLocation || _mapScrollView.isDragging || course < 0)
+        return;
+    
+    //_userHeadingTrackingView.image = [self headingAngleImageForAccuracy:newHeading.headingAccuracy];
+    
+    //self.userLocation.heading = newHeading;
+    
+    //if (_delegateHasDidUpdateUserLocation)
+    //    [_delegate mapView:self didUpdateUserLocation:self.userLocation];
+    
+    if (course != 0 && (self.userTrackingMode == RMUserTrackingModeFollowWithCourse))
+    {
+        
+        //if (_userHeadingTrackingView.alpha < 1.0)
+        //    [UIView animateWithDuration:0.5 animations:^(void) { _userHeadingTrackingView.alpha = 1.0; }];
+        
+        [CATransaction begin];
+        [CATransaction setAnimationDuration:0.5];
+        [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+        
+        [UIView animateWithDuration:0.5
+                              delay:0.0
+                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                         animations:^(void)
+         {
+             CGFloat angle = (M_PI / -180) * course;
+             
+             _mapTransform = CGAffineTransformMakeRotation(angle);
+             _annotationTransform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(-angle));
+             
+             _mapScrollView.transform = _mapTransform;
+             _compassButton.transform = _mapTransform;
+             _overlayView.transform   = _mapTransform;
+             
+             _compassButton.alpha = 1.0;
+             
+             for (RMAnnotation *annotation in _annotations)
+                 if ([annotation.layer isKindOfClass:[RMMarker class]])
+                     annotation.layer.transform = _annotationTransform;
+             
+             [self correctPositionOfAllAnnotations];
+         }
+                         completion:nil];
+        
+        [CATransaction commit];
+    }
+}
+
+
+
+
 - (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)newHeading
 {
     if ( ! _showsUserLocation || _mapScrollView.isDragging || newHeading.headingAccuracy < 0)
@@ -3603,7 +3705,7 @@
     if (_delegateHasDidUpdateUserLocation)
         [_delegate mapView:self didUpdateUserLocation:self.userLocation];
 
-    if (newHeading.trueHeading != 0 && self.userTrackingMode == RMUserTrackingModeFollowWithHeading)
+    if (newHeading.trueHeading != 0 && ((self.userTrackingMode == RMUserTrackingModeFollowWithHeading) || (self.userTrackingMode == RMUserTrackingModeFollowWithCourse)))
     {
         if (_userHeadingTrackingView.alpha < 1.0)
             [UIView animateWithDuration:0.5 animations:^(void) { _userHeadingTrackingView.alpha = 1.0; }];
