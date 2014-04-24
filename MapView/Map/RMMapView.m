@@ -83,9 +83,6 @@
 @property (nonatomic, assign) UIViewController *viewControllerPresentingAttribution;
 @property (nonatomic, retain) RMUserLocation *userLocation;
 
-// TODO: temp test course follow
-@property (nonatomic, assign) CLLocationDirection currentCourse;
-
 - (void)createMapView;
 
 - (void)registerMoveEventByUser:(BOOL)wasUserEvent;
@@ -218,6 +215,10 @@
     SMCalloutView *_currentCallout;
 
     BOOL _rotateAtMinZoom;
+    
+    CLLocationDirection _currentCourse;
+    
+    double _angle;
 }
 
 @synthesize decelerationMode = _decelerationMode;
@@ -241,6 +242,7 @@
 @synthesize debugTiles = _debugTiles;
 @synthesize hideAttribution = _hideAttribution;
 @synthesize showLogoBug = _showLogoBug;
+@synthesize angle = _angle;
 
 #pragma mark -
 #pragma mark Initialization
@@ -3658,36 +3660,46 @@
         //if (_userHeadingTrackingView.alpha < 1.0)
         //    [UIView animateWithDuration:0.5 animations:^(void) { _userHeadingTrackingView.alpha = 1.0; }];
         
+        CGFloat angle = (M_PI / -180) * course;
+        
+        [self setAngle:angle animated:YES];
+    }
+}
+
+- (void)setAngle:(CGFloat)angle {
+    _mapTransform = CGAffineTransformMakeRotation(angle);
+    _annotationTransform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(-angle));
+    
+    _mapScrollView.transform = _mapTransform;
+    _compassButton.transform = _mapTransform;
+    _overlayView.transform   = _mapTransform;
+    
+    _compassButton.alpha = 1.0;
+    
+    for (RMAnnotation *annotation in _annotations)
+        if ([annotation.layer isKindOfClass:[RMMarker class]])
+            annotation.layer.transform = _annotationTransform;
+    
+    [self correctPositionOfAllAnnotations];
+}
+
+- (void)setAngle:(CGFloat)angle animated:(BOOL)animated {
+    if (animated) {
         [CATransaction begin];
         [CATransaction setAnimationDuration:0.5];
         [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
-        
+    
         [UIView animateWithDuration:0.5
-                              delay:0.0
-                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
-                         animations:^(void)
-         {
-             CGFloat angle = (M_PI / -180) * course;
-             
-             _mapTransform = CGAffineTransformMakeRotation(angle);
-             _annotationTransform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(-angle));
-             
-             _mapScrollView.transform = _mapTransform;
-             _compassButton.transform = _mapTransform;
-             _overlayView.transform   = _mapTransform;
-             
-             _compassButton.alpha = 1.0;
-             
-             for (RMAnnotation *annotation in _annotations)
-                 if ([annotation.layer isKindOfClass:[RMMarker class]])
-                     annotation.layer.transform = _annotationTransform;
-             
-             [self correctPositionOfAllAnnotations];
-         }
-                         completion:nil];
-        
-        [CATransaction commit];
-    }
+                          delay:0.0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                     animations:^(void)
+     {
+         self.angle = angle;
+     }
+                     completion:nil];
+    
+    [CATransaction commit];
+
 }
 
 
