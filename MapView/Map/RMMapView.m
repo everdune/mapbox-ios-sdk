@@ -3715,9 +3715,7 @@
     _mapTransform = mapTransform;
     
     // Rotate back annotations
-    CGAffineTransform annotationTransform = CGAffineTransformMakeTranslation(tx, ty);
-    annotationTransform = CGAffineTransformRotate(annotationTransform, -angle);
-    annotationTransform = CGAffineTransformTranslate(annotationTransform, -tx, -ty);
+    CGAffineTransform annotationTransform = CGAffineTransformMakeRotation(-angle);
 
     _annotationTransform = CATransform3DMakeAffineTransform(annotationTransform);
     
