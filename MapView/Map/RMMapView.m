@@ -3691,12 +3691,9 @@
     //if (_delegateHasDidUpdateUserLocation)
     //    [_delegate mapView:self didUpdateUserLocation:self.userLocation];
     
-    if (course != 0 && (self.userTrackingMode == RMUserTrackingModeFollowWithCourse))
+    if (self.userTrackingMode == RMUserTrackingModeFollowWithCourse)
     {
-        
-        //if (_userHeadingTrackingView.alpha < 1.0)
-        //    [UIView animateWithDuration:0.5 animations:^(void) { _userHeadingTrackingView.alpha = 1.0; }];
-        
+        // Angle in radians (map is rotated to the other side)
         CGFloat angle = (M_PI / -180) * course;
         
         [self setAngle:angle animated:YES];
