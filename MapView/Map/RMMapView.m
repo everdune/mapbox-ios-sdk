@@ -3192,6 +3192,9 @@
 
         if (annotation.layer)
         {
+            // Apply current annotation transform
+            annotation.layer.transform = _annotationTransform;
+            
             [_overlayView addSublayer:annotation.layer];
             [_visibleAnnotations addObject:annotation];
         }
@@ -3458,27 +3461,6 @@
         {
             self.showsUserLocation = YES;
             
-            /*
-            _userHeadingTrackingView = [[UIImageView alloc] initWithImage:[self headingAngleImageForAccuracy:MAXFLOAT]];
-            
-            _userHeadingTrackingView.frame = CGRectMake((self.bounds.size.width  / 2) - (_userHeadingTrackingView.bounds.size.width / 2),
-                                                        (self.bounds.size.height / 2) - _userHeadingTrackingView.bounds.size.height,
-                                                        _userHeadingTrackingView.bounds.size.width,
-                                                        _userHeadingTrackingView.bounds.size.height * 2);
-            
-            _userHeadingTrackingView.contentMode = UIViewContentModeTop;
-            
-            _userHeadingTrackingView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin  |
-            UIViewAutoresizingFlexibleRightMargin |
-            UIViewAutoresizingFlexibleTopMargin   |
-            UIViewAutoresizingFlexibleBottomMargin;
-            
-            _userHeadingTrackingView.alpha = 0.0;
-            
-            [self insertSubview:_userHeadingTrackingView belowSubview:_overlayView];
-            */
-             
-             
             if (self.zoom < 3)
                 [self zoomByFactor:exp2f(3 - [self zoom]) near:self.center animated:YES];
             
@@ -3489,8 +3471,6 @@
 #pragma clang diagnostic pop
             
             [self updateHeadingForDeviceOrientation];
-            
-            //[_locationManager startUpdatingHeading];
             
             break;
         }
@@ -3683,13 +3663,6 @@
 - (void)locationManager:(CLLocationManager *)manager didUpdateCourse:(CLLocationDirection)course {
     if ( ! _showsUserLocation || _mapScrollView.isDragging || course < 0)
         return;
-    
-    //_userHeadingTrackingView.image = [self headingAngleImageForAccuracy:newHeading.headingAccuracy];
-    
-    //self.userLocation.heading = newHeading;
-    
-    //if (_delegateHasDidUpdateUserLocation)
-    //    [_delegate mapView:self didUpdateUserLocation:self.userLocation];
     
     if (self.userTrackingMode == RMUserTrackingModeFollowWithCourse)
     {
