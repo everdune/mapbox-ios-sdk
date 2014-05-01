@@ -118,6 +118,8 @@
 
 @property (nonatomic, assign) BOOL rotateWithAngle;
 
+@property (nonatomic, assign) float angle;
+
 #pragma mark -
 
 /** @name Initializing Annotations */

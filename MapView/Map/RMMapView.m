@@ -2989,8 +2989,10 @@
             if (annotation.layer == nil)
                 continue;
 
-            if (!annotation.rotateWithAngle) {
-                if ([annotation.layer isKindOfClass:[RMMarker class]]) {
+            if ([annotation.layer isKindOfClass:[RMMarker class]]) {
+                if (annotation.rotateWithAngle) {
+                    annotation.layer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(annotation.angle));
+                } else {
                     annotation.layer.transform = _annotationTransform;
                 }
             }
@@ -3047,8 +3049,10 @@
                         if (annotation.layer == nil)
                             continue;
 
-                        if (!annotation.rotateWithAngle) {
-                            if ([annotation.layer isKindOfClass:[RMMarker class]]) {
+                        if ([annotation.layer isKindOfClass:[RMMarker class]]) {
+                            if (annotation.rotateWithAngle) {
+                                annotation.layer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(annotation.angle));
+                            } else {
                                 annotation.layer.transform = _annotationTransform;
                             }
                         }
@@ -3699,12 +3703,13 @@
     _compassButton.alpha = 1.0;
     
     for (RMAnnotation *annotation in _annotations) {
-        if (annotation.rotateWithAngle) {
-            continue;
-        }
-        
         if ([annotation.layer isKindOfClass:[RMMarker class]]) {
-            annotation.layer.transform = _annotationTransform;
+            
+            if (annotation.rotateWithAngle) {
+                annotation.layer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(annotation.angle));
+            } else {
+                annotation.layer.transform = _annotationTransform;
+            }
         }
     }
     

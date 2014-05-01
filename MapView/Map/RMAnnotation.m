@@ -63,6 +63,7 @@
 @synthesize clusteredAnnotations;
 @synthesize isUserLocationAnnotation;
 @synthesize rotateWithAngle;
+@synthesize angle;
 
 + (instancetype)annotationWithMapView:(RMMapView *)aMapView coordinate:(CLLocationCoordinate2D)aCoordinate andTitle:(NSString *)aTitle
 {
