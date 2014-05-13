@@ -3677,7 +3677,13 @@
     }
 }
 
+- (CGFloat)angle {
+    return _angle;
+}
+
 - (void)setAngle:(CGFloat)angle {
+    _angle = angle;
+    
     CGFloat tx = self.centerOffset.width;
     CGFloat ty = self.centerOffset.height;
     
