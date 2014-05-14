@@ -3358,14 +3358,8 @@
                                 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
                              animations:^(void)
                              {
-                                 _mapTransform = CGAffineTransformIdentity;
-                                 _compassTransform = CGAffineTransformIdentity;
-                                 _annotationTransform = CATransform3DIdentity;
-
-                                 _mapScrollView.transform = _mapTransform;
-                                 _overlayView.transform   = _mapTransform;
-                                 _compassButton.transform = _compassTransform;
-
+                                 self.angle = 0.0;
+                                 
                                  _compassButton.alpha = 0;
 
                                  for (RMAnnotation *annotation in _annotations)
@@ -3404,13 +3398,7 @@
                                 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
                              animations:^(void)
                              {
-                                 _mapTransform = CGAffineTransformIdentity;
-                                 _compassTransform = CGAffineTransformIdentity;
-                                 _annotationTransform = CATransform3DIdentity;
-
-                                 _mapScrollView.transform = _mapTransform;
-                                 _overlayView.transform   = _mapTransform;
-                                 _compassButton.transform = _compassTransform;
+                                 self.angle = 0.0;
 
                                  _compassButton.alpha = 0;
 
@@ -3684,42 +3672,54 @@
 - (void)setAngle:(CGFloat)angle {
     _angle = angle;
     
-    CGFloat tx = self.centerOffset.width;
-    CGFloat ty = self.centerOffset.height;
-    
-    // Rotate at center offset
-    CGAffineTransform mapTransform = CGAffineTransformMakeTranslation(tx, ty);
-    mapTransform = CGAffineTransformRotate(mapTransform, angle);
-    mapTransform = CGAffineTransformTranslate(mapTransform, -tx, -ty);
-
-    _mapTransform = mapTransform;
-    
-    // Rotate back annotations
-    CGAffineTransform annotationTransform = CGAffineTransformMakeRotation(-angle);
-
-    _annotationTransform = CATransform3DMakeAffineTransform(annotationTransform);
-    
-    CGAffineTransform compassTransform = CGAffineTransformMakeRotation(angle);
-    _compassTransform = compassTransform;
-    
-    _mapScrollView.transform = _mapTransform;
-    _overlayView.transform   = _mapTransform;
-    _compassButton.transform = _compassTransform;
-    
-    _compassButton.alpha = 1.0;
-    
-    for (RMAnnotation *annotation in _annotations) {
-        if ([annotation.layer isKindOfClass:[RMMarker class]]) {
-            
-            if (annotation.rotateWithAngle) {
-                annotation.layer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(annotation.angle));
-            } else {
-                annotation.layer.transform = _annotationTransform;
+    if (angle == 0.0) {
+        // Probably safe comparison, because the angle 0.0 is not computed, but set
+        _mapTransform = CGAffineTransformIdentity;
+        _compassTransform = CGAffineTransformIdentity;
+        _annotationTransform = CATransform3DIdentity;
+        
+        _mapScrollView.transform = _mapTransform;
+        _overlayView.transform   = _mapTransform;
+        _compassButton.transform = _compassTransform;
+        
+    } else {
+        CGFloat tx = self.centerOffset.width;
+        CGFloat ty = self.centerOffset.height;
+        
+        // Rotate at center offset
+        CGAffineTransform mapTransform = CGAffineTransformMakeTranslation(tx, ty);
+        mapTransform = CGAffineTransformRotate(mapTransform, angle);
+        mapTransform = CGAffineTransformTranslate(mapTransform, -tx, -ty);
+        
+        _mapTransform = mapTransform;
+        
+        // Rotate back annotations
+        CGAffineTransform annotationTransform = CGAffineTransformMakeRotation(-angle);
+        
+        _annotationTransform = CATransform3DMakeAffineTransform(annotationTransform);
+        
+        CGAffineTransform compassTransform = CGAffineTransformMakeRotation(angle);
+        _compassTransform = compassTransform;
+        
+        _mapScrollView.transform = _mapTransform;
+        _overlayView.transform   = _mapTransform;
+        _compassButton.transform = _compassTransform;
+        
+        _compassButton.alpha = 1.0;
+        
+        for (RMAnnotation *annotation in _annotations) {
+            if ([annotation.layer isKindOfClass:[RMMarker class]]) {
+                
+                if (annotation.rotateWithAngle) {
+                    annotation.layer.transform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(annotation.angle));
+                } else {
+                    annotation.layer.transform = _annotationTransform;
+                }
             }
         }
+        
+        [self correctPositionOfAllAnnotations];
     }
-    
-    [self correctPositionOfAllAnnotations];
 }
 
 - (void)setAngle:(CGFloat)angle animated:(BOOL)animated {
