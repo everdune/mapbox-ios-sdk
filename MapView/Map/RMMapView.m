@@ -3693,6 +3693,12 @@
         
         _mapTransform = mapTransform;
         
+        
+        // TODO: Issue with panning seems to be related to the translation part in transform
+        // Following line does not break scrolling:
+        // CGAffineTransform mapTransform = CGAffineTransformMakeRotation(angle);
+        
+        
         // Rotate back annotations
         CGAffineTransform annotationTransform = CGAffineTransformMakeRotation(-angle);
         
