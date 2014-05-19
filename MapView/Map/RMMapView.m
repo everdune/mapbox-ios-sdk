@@ -218,6 +218,8 @@
     BOOL _rotateAtMinZoom;
     
     CGFloat _angle;
+    
+    BOOL _userTrackingModeResetsAngle;
 }
 
 @synthesize decelerationMode = _decelerationMode;
@@ -243,6 +245,7 @@
 @synthesize showLogoBug = _showLogoBug;
 @synthesize angle = _angle;
 @synthesize centerOffset = _centerOffset;
+@synthesize userTrackingModeResetsAngle = _userTrackingModeResetsAngle;
 
 #pragma mark -
 #pragma mark Initialization
@@ -334,6 +337,8 @@
     }
 
     self.displayHeadingCalibration = YES;
+    
+    _userTrackingModeResetsAngle = YES;
 
     _mapTransform = CGAffineTransformIdentity;
     _compassTransform = CGAffineTransformIdentity;
@@ -3350,25 +3355,28 @@
         {
             [_locationManager stopUpdatingHeading];
 
-            [CATransaction setAnimationDuration:0.5];
-            [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+            if (self.userTrackingModeResetsAngle) {
 
-            [UIView animateWithDuration:(animated ? 0.5 : 0.0)
-                                  delay:0.0
-                                options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
-                             animations:^(void)
-                             {
-                                 self.angle = 0.0;
-                                 
-                                 _compassButton.alpha = 0;
-
-                                 for (RMAnnotation *annotation in _annotations)
-                                     if ([annotation.layer isKindOfClass:[RMMarker class]])
-                                         annotation.layer.transform = _annotationTransform;
-                             }
-                             completion:nil];
-
-            [CATransaction commit];
+                [CATransaction setAnimationDuration:0.5];
+                [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+                
+                [UIView animateWithDuration:(animated ? 0.5 : 0.0)
+                                      delay:0.0
+                                    options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                                 animations:^(void)
+                 {
+                     self.angle = 0.0;
+                     
+                     _compassButton.alpha = 0;
+                     
+                     for (RMAnnotation *annotation in _annotations)
+                         if ([annotation.layer isKindOfClass:[RMMarker class]])
+                             annotation.layer.transform = _annotationTransform;
+                 }
+                                 completion:nil];
+                
+                [CATransaction commit];
+            }
 
             if (_userHeadingTrackingView)
                 [_userHeadingTrackingView removeFromSuperview]; _userHeadingTrackingView = nil;
@@ -3390,25 +3398,29 @@
             if (_userHeadingTrackingView)
                 [_userHeadingTrackingView removeFromSuperview]; _userHeadingTrackingView = nil;
 
-            [CATransaction setAnimationDuration:0.5];
-            [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+            if (self.userTrackingModeResetsAngle) {
 
-            [UIView animateWithDuration:(animated ? 0.5 : 0.0)
-                                  delay:0.0
-                                options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
-                             animations:^(void)
-                             {
-                                 self.angle = 0.0;
-
-                                 _compassButton.alpha = 0;
-
-                                 for (RMAnnotation *annotation in _annotations)
-                                     if ([annotation.layer isKindOfClass:[RMMarker class]])
-                                         annotation.layer.transform = _annotationTransform;
-                             }
-                             completion:nil];
-
-            [CATransaction commit];
+                [CATransaction setAnimationDuration:0.5];
+                [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+                
+                
+                [UIView animateWithDuration:(animated ? 0.5 : 0.0)
+                                      delay:0.0
+                                    options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                                 animations:^(void)
+                 {
+                     self.angle = 0.0;
+                     
+                     _compassButton.alpha = 0;
+                     
+                     for (RMAnnotation *annotation in _annotations)
+                         if ([annotation.layer isKindOfClass:[RMMarker class]])
+                             annotation.layer.transform = _annotationTransform;
+                 }
+                                 completion:nil];
+                
+                [CATransaction commit];
+            }
 
             break;
         }

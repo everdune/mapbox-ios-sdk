@@ -522,6 +522,8 @@ typedef enum : NSUInteger {
 /** The mode used to track the user location. */
 @property (nonatomic, assign) RMUserTrackingMode userTrackingMode;
 
+@property (nonatomic, assign) BOOL userTrackingModeResetsAngle;
+
 /** Whether the map view should display a heading calibration alert when necessary. The default value is `YES`. */
 @property (nonatomic, assign) BOOL displayHeadingCalibration;
 
