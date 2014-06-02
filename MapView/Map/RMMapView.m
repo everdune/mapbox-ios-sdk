@@ -1924,8 +1924,17 @@
         if (calloutCandidate)
             return calloutCandidate;
     }
+    
+    UIView *hitView = [super hitTest:point withEvent:event];
+    
+    // Everdune Workaround to make scrolling and zooming work icw rotation
+    // Probably no reason to return mapview,
+    // scrollview should cover complete mapview
+    if ([hitView isKindOfClass:[self class]]) {
+        return _mapScrollView;
+    }
 
-    return [super hitTest:point withEvent:event];
+    return hitView;
 }
 
 - (void)selectAnnotation:(RMAnnotation *)anAnnotation animated:(BOOL)animated
