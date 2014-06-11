@@ -342,6 +342,8 @@
     self.displayHeadingCalibration = YES;
     
     _userTrackingModeResetsAngle = YES;
+    
+    _userTrackingAnimated = YES;
 
     _mapTransform = CGAffineTransformIdentity;
     _compassTransform = CGAffineTransformIdentity;
