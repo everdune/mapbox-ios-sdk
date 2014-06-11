@@ -220,6 +220,8 @@
     CGFloat _angle;
     
     BOOL _userTrackingModeResetsAngle;
+    
+    BOOL _userTrackingAnimated;
 }
 
 @synthesize decelerationMode = _decelerationMode;
@@ -246,6 +248,7 @@
 @synthesize angle = _angle;
 @synthesize centerOffset = _centerOffset;
 @synthesize userTrackingModeResetsAngle = _userTrackingModeResetsAngle;
+@synthesize userTrackingAnimated = _userTrackingAnimated;
 
 #pragma mark -
 #pragma mark Initialization
@@ -3519,7 +3522,7 @@
             {
                 // at sufficient detail, just re-center the map; don't zoom
                 //
-                [self setCenterCoordinate:self.userLocation.location.coordinate animated:YES];
+                [self setCenterCoordinate:self.userLocation.location.coordinate animated:self.userTrackingAnimated];
             }
             else
             {
@@ -3682,7 +3685,7 @@
         // Angle in radians (map is rotated to the other side)
         CGFloat angle = (M_PI / -180) * course;
         
-        [self setAngle:angle animated:YES];
+        [self setAngle:angle animated:self.userTrackingAnimated];
     }
 }
 
