@@ -220,6 +220,8 @@
     CGFloat _angle;
     
     BOOL _userTrackingModeResetsAngle;
+    
+    BOOL _userTrackingAnimated;
 }
 
 @synthesize decelerationMode = _decelerationMode;
@@ -246,6 +248,7 @@
 @synthesize angle = _angle;
 @synthesize centerOffset = _centerOffset;
 @synthesize userTrackingModeResetsAngle = _userTrackingModeResetsAngle;
+@synthesize userTrackingAnimated = _userTrackingAnimated;
 
 #pragma mark -
 #pragma mark Initialization
@@ -339,6 +342,8 @@
     self.displayHeadingCalibration = YES;
     
     _userTrackingModeResetsAngle = YES;
+    
+    _userTrackingAnimated = YES;
 
     _mapTransform = CGAffineTransformIdentity;
     _compassTransform = CGAffineTransformIdentity;
@@ -1924,8 +1929,17 @@
         if (calloutCandidate)
             return calloutCandidate;
     }
+    
+    UIView *hitView = [super hitTest:point withEvent:event];
+    
+    // Everdune Workaround to make scrolling and zooming work icw rotation
+    // Probably no reason to return mapview,
+    // scrollview should cover complete mapview
+    if ([hitView isKindOfClass:[self class]]) {
+        return _mapScrollView;
+    }
 
-    return [super hitTest:point withEvent:event];
+    return hitView;
 }
 
 - (void)selectAnnotation:(RMAnnotation *)anAnnotation animated:(BOOL)animated
@@ -3510,7 +3524,7 @@
             {
                 // at sufficient detail, just re-center the map; don't zoom
                 //
-                [self setCenterCoordinate:self.userLocation.location.coordinate animated:YES];
+                [self setCenterCoordinate:self.userLocation.location.coordinate animated:self.userTrackingAnimated];
             }
             else
             {
@@ -3673,7 +3687,7 @@
         // Angle in radians (map is rotated to the other side)
         CGFloat angle = (M_PI / -180) * course;
         
-        [self setAngle:angle animated:YES];
+        [self setAngle:angle animated:self.userTrackingAnimated];
     }
 }
 

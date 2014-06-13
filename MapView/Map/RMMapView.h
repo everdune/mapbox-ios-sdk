@@ -524,6 +524,8 @@ typedef enum : NSUInteger {
 
 @property (nonatomic, assign) BOOL userTrackingModeResetsAngle;
 
+@property (nonatomic, assign) BOOL userTrackingAnimated;
+
 /** Whether the map view should display a heading calibration alert when necessary. The default value is `YES`. */
 @property (nonatomic, assign) BOOL displayHeadingCalibration;
 
