@@ -48,6 +48,19 @@
 @synthesize useSnapshotRenderer = _useSnapshotRenderer;
 @synthesize tileSource = _tileSource;
 
+
+// Use a global operation queue to limit the number of concurrent requests to
+// stay within the GCD limit of 64 threads.
+static NSOperationQueue *_globalTileFetchQueue = nil;
+
++ (NSOperationQueue*)globalTileFetchQueue {
+    if (nil == _globalTileFetchQueue) {
+        _globalTileFetchQueue = [[NSOperationQueue alloc] init];
+        _globalTileFetchQueue.maxConcurrentOperationCount = 10;
+    }
+    return _globalTileFetchQueue;
+}
+
 + (Class)layerClass
 {
     return [CATiledLayer class];
@@ -172,7 +185,7 @@
                 {
                     // fire off an asynchronous retrieval
                     //
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void)
+                    [[RMMapTiledLayerView globalTileFetchQueue] addOperationWithBlock:^(void)
                     {
                         // ensure only one request for a URL at a time
                         //
@@ -190,7 +203,7 @@
                                 });
                             }
                         }
-                    });
+                    }];
                 }
             }
         }
