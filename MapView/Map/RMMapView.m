@@ -222,6 +222,8 @@
     BOOL _userTrackingModeResetsAngle;
     
     BOOL _userTrackingAnimated;
+    
+    BOOL _hideCompass;
 }
 
 @synthesize decelerationMode = _decelerationMode;
@@ -249,6 +251,7 @@
 @synthesize centerOffset = _centerOffset;
 @synthesize userTrackingModeResetsAngle = _userTrackingModeResetsAngle;
 @synthesize userTrackingAnimated = _userTrackingAnimated;
+@synthesize hideCompass = _hideCompass;
 
 #pragma mark -
 #pragma mark Initialization
@@ -3737,7 +3740,7 @@
         _overlayView.transform   = _mapTransform;
         _compassButton.transform = _compassTransform;
         
-        _compassButton.alpha = 1.0;
+        _compassButton.alpha = self.hideCompass ? 0.0 : 1.0;
         
         for (RMAnnotation *annotation in _annotations) {
             if ([annotation.layer isKindOfClass:[RMMarker class]]) {
