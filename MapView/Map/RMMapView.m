@@ -459,6 +459,11 @@
     [_zoomDelegateQueue cancelAllOperations];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [_mapScrollView removeObserver:self forKeyPath:@"contentOffset"];
+    
+#ifdef __LP64__
+    [_mapScrollView removeObserver:self forKeyPath:@"zoomScale"];
+#endif
+    
     [_tileSourcesContainer cancelAllDownloads];
     _locationManager.delegate = nil;
     [_locationManager stopUpdatingLocation];
@@ -1336,6 +1341,11 @@
     [_tiledLayersSuperview removeFromSuperview];  _tiledLayersSuperview = nil;
 
     [_mapScrollView removeObserver:self forKeyPath:@"contentOffset"];
+    
+#ifdef __LP64__
+    [_mapScrollView removeObserver:self forKeyPath:@"zoomScale"];
+#endif
+    
     [_mapScrollView removeFromSuperview];  _mapScrollView = nil;
 
     _mapScrollViewIsZooming = NO;
@@ -1379,6 +1389,12 @@
     _lastContentSize = _mapScrollView.contentSize;
 
     [_mapScrollView addObserver:self forKeyPath:@"contentOffset" options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld) context:NULL];
+    
+#ifdef __LP64__
+    [_mapScrollView addObserver:self forKeyPath:@"zoomScale" options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld) context:NULL];
+#endif
+    
+    
     _mapScrollView.mapScrollViewDelegate = self;
 
     _mapScrollView.zoomScale = exp2f([self zoom]);
