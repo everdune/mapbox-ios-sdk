@@ -187,20 +187,23 @@ static NSOperationQueue *_globalTileFetchQueue = nil;
                     //
                     [[RMMapTiledLayerView globalTileFetchQueue] addOperationWithBlock:^(void)
                     {
-                        // ensure only one request for a URL at a time
-                        //
-                        @synchronized ([(RMAbstractWebMapSource *)_tileSource URLForTile:RMTileMake(x, y, zoom)])
-                        {
-                            // this will return quicker if cached since above attempt, else block on fetch
+                        // Ensure memory for released objects is reclaimed when operation finishes
+                        @autoreleasepool {
+                            // ensure only one request for a URL at a time
                             //
-                            if (_tileSource.isCacheable && [_tileSource imageForTile:RMTileMake(x, y, zoom) inCache:[_mapView tileCache]])
+                            @synchronized ([(RMAbstractWebMapSource *)_tileSource URLForTile:RMTileMake(x, y, zoom)])
                             {
-                                dispatch_async(dispatch_get_main_queue(), ^(void)
+                                // this will return quicker if cached since above attempt, else block on fetch
+                                //
+                                if (_tileSource.isCacheable && [_tileSource imageForTile:RMTileMake(x, y, zoom) inCache:[_mapView tileCache]])
                                 {
-                                    // do it all again for this tile, next time synchronously from cache
-                                    //
-                                    [self.layer setNeedsDisplayInRect:rect];
-                                });
+                                    dispatch_async(dispatch_get_main_queue(), ^(void)
+                                                   {
+                                                       // do it all again for this tile, next time synchronously from cache
+                                                       //
+                                                       [self.layer setNeedsDisplayInRect:rect];
+                                                   });
+                                }
                             }
                         }
                     }];
