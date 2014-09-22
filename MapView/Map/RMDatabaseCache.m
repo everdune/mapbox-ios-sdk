@@ -253,7 +253,7 @@
     {
         NSUInteger tilesInDb = [self count];
 
-        if (_capacity <= tilesInDb && _expiryPeriod == 0)
+        if (_capacity <= tilesInDb)
             [self purgeTiles:MAX(_minimalPurge, 1+tilesInDb-_capacity)];
 
 //        RMLog(@"DB cache     insert tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
