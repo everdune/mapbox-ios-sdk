@@ -55,7 +55,7 @@
 
 - (id)init
 {
-	return [self initWithCapacity:32];
+    return [self initWithCapacity:32];
 }
 
 - (void)dealloc
@@ -68,50 +68,55 @@
 
 - (void)didReceiveMemoryWarning
 {
-	LogMethod();
+    LogMethod();
 
     dispatch_barrier_async(_memoryCacheQueue, ^{
-        [_memoryCache removeAllObjects];
+        @autoreleasepool {
+            [_memoryCache removeAllObjects];
+        }
     });
 }
 
 - (void)removeTile:(RMTile)tile
 {
     dispatch_barrier_async(_memoryCacheQueue, ^{
-        [_memoryCache removeObjectForKey:[RMTileCache tileHash:tile]];
+        @autoreleasepool {
+            [_memoryCache removeObjectForKey:[RMTileCache tileHash:tile]];
+        }
     });
 }
 
 - (UIImage *)cachedImage:(RMTile)tile withCacheKey:(NSString *)aCacheKey
 {
-//    RMLog(@"Memory cache check  tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
+    //    RMLog(@"Memory cache check  tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
 
     __block RMCacheObject *cachedObject = nil;
     NSNumber *tileHash = [RMTileCache tileHash:tile];
 
     dispatch_sync(_memoryCacheQueue, ^{
+        @autoreleasepool {
 
-        cachedObject = [_memoryCache objectForKey:tileHash];
+            cachedObject = [_memoryCache objectForKey:tileHash];
 
-        if (cachedObject)
-        {
-            if ([[cachedObject cacheKey] isEqualToString:aCacheKey])
+            if (cachedObject)
             {
-                [cachedObject touch];
-            }
-            else
-            {
-                dispatch_barrier_async(_memoryCacheQueue, ^{
-                    [_memoryCache removeObjectForKey:tileHash];
-                });
+                if ([[cachedObject cacheKey] isEqualToString:aCacheKey])
+                {
+                    [cachedObject touch];
+                }
+                else
+                {
+                    dispatch_barrier_async(_memoryCacheQueue, ^{
+                        [_memoryCache removeObjectForKey:tileHash];
+                    });
 
-                cachedObject = nil;
+                    cachedObject = nil;
+                }
             }
         }
-
     });
 
-//    RMLog(@"Memory cache hit    tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
+    //    RMLog(@"Memory cache hit    tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
 
     return [cachedObject cachedObject];
 }
@@ -125,47 +130,48 @@
 - (void)makeSpaceInCache
 {
     dispatch_barrier_async(_memoryCacheQueue, ^{
-
-        while ([_memoryCache count] >= _memoryCacheCapacity)
-        {
-            // Rather than scanning I would really like to be using a priority queue
-            // backed by a heap here.
-
-            // Maybe deleting one random element would work as well.
-
-            NSEnumerator *enumerator = [_memoryCache objectEnumerator];
-            RMCacheObject *image;
-
-            NSDate *oldestDate = nil;
-            RMCacheObject *oldestImage = nil;
-
-            while ((image = (RMCacheObject *)[enumerator nextObject]))
+        @autoreleasepool {
+            while ([_memoryCache count] >= _memoryCacheCapacity)
             {
-                if (oldestDate == nil || ([oldestDate timeIntervalSinceReferenceDate] > [[image timestamp] timeIntervalSinceReferenceDate]))
+                // Rather than scanning I would really like to be using a priority queue
+                // backed by a heap here.
+
+                // Maybe deleting one random element would work as well.
+
+                NSEnumerator *enumerator = [_memoryCache objectEnumerator];
+                RMCacheObject *image;
+
+                NSDate *oldestDate = nil;
+                RMCacheObject *oldestImage = nil;
+
+                while ((image = (RMCacheObject *)[enumerator nextObject]))
                 {
-                    oldestDate = [image timestamp];
-                    oldestImage = image;
+                    if (oldestDate == nil || ([oldestDate timeIntervalSinceReferenceDate] > [[image timestamp] timeIntervalSinceReferenceDate]))
+                    {
+                        oldestDate = [image timestamp];
+                        oldestImage = image;
+                    }
+                }
+
+                if (oldestImage)
+                {
+                    // RMLog(@"Memory cache delete tile %d %d %d (%@)", oldestImage.tile.x, oldestImage.tile.y, oldestImage.tile.zoom, [RMTileCache tileHash:oldestImage.tile]);
+                    [_memoryCache removeObjectForKey:[RMTileCache tileHash:oldestImage.tile]];
                 }
             }
-
-            if (oldestImage)
-            {
-                // RMLog(@"Memory cache delete tile %d %d %d (%@)", oldestImage.tile.x, oldestImage.tile.y, oldestImage.tile.zoom, [RMTileCache tileHash:oldestImage.tile]);
-                [_memoryCache removeObjectForKey:[RMTileCache tileHash:oldestImage.tile]];
-            }
         }
-
     });
 }
 
 - (void)addImage:(UIImage *)image forTile:(RMTile)tile withCacheKey:(NSString *)aCacheKey
 {
-//    RMLog(@"Memory cache insert tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
-
-	[self makeSpaceInCache];
+    //    RMLog(@"Memory cache insert tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
+    [self makeSpaceInCache];
 
     dispatch_barrier_async(_memoryCacheQueue, ^{
-        [_memoryCache setObject:[RMCacheObject cacheObject:image forTile:tile withCacheKey:aCacheKey] forKey:[RMTileCache tileHash:tile]];
+        @autoreleasepool {
+            [_memoryCache setObject:[RMCacheObject cacheObject:image forTile:tile withCacheKey:aCacheKey] forKey:[RMTileCache tileHash:tile]];
+        }
     });
 }
 
@@ -174,23 +180,25 @@
     LogMethod();
 
     dispatch_barrier_async(_memoryCacheQueue, ^{
-        [_memoryCache removeAllObjects];
+        @autoreleasepool {
+            [_memoryCache removeAllObjects];
+        }
     });
 }
 
 - (void)removeAllCachedImagesForCacheKey:(NSString *)cacheKey
 {
     dispatch_barrier_async(_memoryCacheQueue, ^{
+        @autoreleasepool {
+            NSMutableArray *keysToRemove = [NSMutableArray array];
 
-        NSMutableArray *keysToRemove = [NSMutableArray array];
-
-        [_memoryCache enumerateKeysAndObjectsUsingBlock:^(id key, RMCacheObject *cachedObject, BOOL *stop) {
-            if ([[cachedObject cacheKey] isEqualToString:cacheKey])
-                [keysToRemove addObject:key];
-        }];
-
-        [_memoryCache removeObjectsForKeys:keysToRemove];
-
+            [_memoryCache enumerateKeysAndObjectsUsingBlock:^(id key, RMCacheObject *cachedObject, BOOL *stop) {
+                if ([[cachedObject cacheKey] isEqualToString:cacheKey])
+                    [keysToRemove addObject:key];
+            }];
+            
+            [_memoryCache removeObjectsForKeys:keysToRemove];
+        }
     });
 }
 
