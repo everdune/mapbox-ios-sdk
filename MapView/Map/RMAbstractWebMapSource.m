@@ -156,16 +156,32 @@
     }
     else
     {
-        for (NSUInteger try = 0; image == nil && try < self.retryCount; ++try)
-        {
-            NSHTTPURLResponse *response = nil;
-            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[URLs objectAtIndex:0]];
-            [request setTimeoutInterval:(self.requestTimeoutSeconds / (CGFloat)self.retryCount)];
-            image = [UIImage imageWithData:[NSURLConnection sendBrandedSynchronousRequest:request returningResponse:&response error:nil]];
+// BEGIN - This block leaks memory in NSURLConnection sendSynchronousRequest
+//        for (NSUInteger try = 0; image == nil && try < self.retryCount; ++try)
+//        {
+//            NSHTTPURLResponse *response = nil;
+//            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[URLs objectAtIndex:0]];
+//            [request setTimeoutInterval:(self.requestTimeoutSeconds / (CGFloat)self.retryCount)];
+//            image = [UIImage imageWithData:[NSURLConnection sendBrandedSynchronousRequest:request returningResponse:&response error:nil]];
+//
+//            if (response.statusCode == HTTP_404_NOT_FOUND)
+//                break;
+//        }
+// END
+// BEGIN WORKAROUND - Using NSURLSession
+        NSURLSession *session = [NSURLSession sharedSession];
 
-            if (response.statusCode == HTTP_404_NOT_FOUND)
-                break;
-        }
+        dispatch_semaphore_t sem =  dispatch_semaphore_create(0);
+
+        [[session dataTaskWithURL:[URLs objectAtIndex:0] completionHandler:^(NSData *data,  NSURLResponse *response, NSError *error) {
+            if (nil != data && nil == error) {
+                image = [UIImage imageWithData:data];
+            }
+            dispatch_semaphore_signal(sem);
+        }] resume];
+
+        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+// END WORKAROUND - Using NSURLSession
     }
 
     if (image && self.isCacheable)
