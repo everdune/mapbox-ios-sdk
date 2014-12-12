@@ -69,20 +69,33 @@
 	if (useCacheDir)
 		paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
 	else
-		paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		//paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
 
 	if ([paths count] > 0) // Should only be one...
 	{
 		NSString *cachePath = [paths objectAtIndex:0];
-
+        
 		// check for existence of cache directory
 		if ( ![[NSFileManager defaultManager] fileExistsAtPath: cachePath])
 		{
 			// create a new cache directory
 			[[NSFileManager defaultManager] createDirectoryAtPath:cachePath withIntermediateDirectories:NO attributes:nil error:nil];
 		}
-
-		return [cachePath stringByAppendingPathComponent:@"RMTileCache.db"];
+        
+        NSURL *cachePathURL = [NSURL fileURLWithPath:cachePath isDirectory:YES];
+        
+        NSError *error = nil;
+        BOOL success = [cachePathURL
+                          setResourceValue:[NSNumber numberWithBool:YES]
+                          forKey:NSURLIsExcludedFromBackupKey
+                          error:&error];
+        
+        if (success) {
+            return [[cachePathURL URLByAppendingPathComponent:@"RMTileCache.db"] absoluteString];
+        } else {
+            RMLog(@"Error disabling backup on directory: %@ (%ld)", [error localizedDescription], [error code]);
+        }
 	}
 
 	return nil;
