@@ -53,11 +53,15 @@
 // stay within the GCD limit of 64 threads.
 static NSOperationQueue *_globalTileFetchQueue = nil;
 
-+ (NSOperationQueue*)globalTileFetchQueue {
-    if (nil == _globalTileFetchQueue) {
++ (void)initialize
+{
+    if (self == [RMMapTiledLayerView class]) {
         _globalTileFetchQueue = [[NSOperationQueue alloc] init];
         _globalTileFetchQueue.maxConcurrentOperationCount = 10;
     }
+}
+
++ (NSOperationQueue*)globalTileFetchQueue {
     return _globalTileFetchQueue;
 }
 
