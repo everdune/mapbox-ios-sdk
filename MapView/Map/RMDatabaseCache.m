@@ -64,13 +64,17 @@
 
 + (NSString *)dbPathUsingCacheDir:(BOOL)useCacheDir
 {
-    NSArray *paths;
+    NSArray *paths = nil;
 
-	if (useCacheDir)
+    if (useCacheDir) {
 		paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-	else
-		//paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+    } else {
+		paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    
+        // TODO: Check current guidelines
+        // See also: http://stackoverflow.com/questions/12113426/setting-nsdocumentdirectory-so-it-doesnt-backup-to-icloud
+        //paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+    }
 
 	if ([paths count] > 0) // Should only be one...
 	{
@@ -83,19 +87,22 @@
 			[[NSFileManager defaultManager] createDirectoryAtPath:cachePath withIntermediateDirectories:NO attributes:nil error:nil];
 		}
         
-        NSURL *cachePathURL = [NSURL fileURLWithPath:cachePath isDirectory:YES];
-        
-        NSError *error = nil;
-        BOOL success = [cachePathURL
-                          setResourceValue:[NSNumber numberWithBool:YES]
-                          forKey:NSURLIsExcludedFromBackupKey
-                          error:&error];
-        
-        if (success) {
-            return [[cachePathURL URLByAppendingPathComponent:@"RMTileCache.db"] absoluteString];
-        } else {
-            RMLog(@"Error disabling backup on directory: %@ (%ld)", [error localizedDescription], [error code]);
-        }
+        return [cachePath stringByAppendingPathComponent:@"RMTileCache.db"];
+
+        // Set the 'excluded from backup' flag
+//        NSURL *cachePathURL = [NSURL fileURLWithPath:cachePath isDirectory:YES];
+//        
+//        NSError *error = nil;
+//        BOOL success = [cachePathURL
+//                          setResourceValue:[NSNumber numberWithBool:YES]
+//                          forKey:NSURLIsExcludedFromBackupKey
+//                          error:&error];
+//        
+//        if (success) {
+//            return [cachePath stringByAppendingPathComponent:@"RMTileCache.db"];
+//        } else {
+//            RMLog(@"Error disabling backup on directory: %@ (%ld)", [error localizedDescription], [error code]);
+//        }
 	}
 
     return nil;
