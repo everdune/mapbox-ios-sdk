@@ -43,6 +43,8 @@
 {
     RMMapView *_mapView;
     id <RMTileSource> _tileSource;
+    
+    NSMutableDictionary *_requestingURLs;
 }
 
 @synthesize useSnapshotRenderer = _useSnapshotRenderer;
@@ -92,6 +94,8 @@ static NSOperationQueue *_globalTileFetchQueue = nil;
     if (_mapView.adjustTilesForRetinaDisplay && _mapView.screenScale > 1.0) levelsOf2xMagnification += 1;
     tiledLayer.levelsOfDetail = levelsOf2xMagnification;
     tiledLayer.levelsOfDetailBias = levelsOf2xMagnification;
+    
+    _requestingURLs = [[NSMutableDictionary alloc] init];
 
     return self;
 }
@@ -195,7 +199,20 @@ static NSOperationQueue *_globalTileFetchQueue = nil;
                         @autoreleasepool {
                             // ensure only one request for a URL at a time
                             //
-                            @synchronized ([(RMAbstractWebMapSource *)_tileSource URLForTile:RMTileMake(x, y, zoom)])
+                            NSURL *url = [(RMAbstractWebMapSource *)_tileSource URLForTile:RMTileMake(x, y, zoom)];
+                            
+                            // Check for active requests
+                            @synchronized(_requestingURLs) {
+                                NSURL *existingURL = [_requestingURLs objectForKey:[url absoluteString]];
+                                
+                                if (existingURL != nil) {
+                                    url = existingURL;
+                                } else {
+                                    [_requestingURLs setObject:url forKey:[url absoluteString]];
+                                }
+                            }
+                            
+                            @synchronized (url)
                             {
                                 // this will return quicker if cached since above attempt, else block on fetch
                                 //
@@ -208,6 +225,10 @@ static NSOperationQueue *_globalTileFetchQueue = nil;
                                                        [self.layer setNeedsDisplayInRect:rect];
                                                    });
                                 }
+                            }
+                            
+                            @synchronized(_requestingURLs) {
+                                [_requestingURLs removeObjectForKey:[url absoluteString]];
                             }
                         }
                     }];
