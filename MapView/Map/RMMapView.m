@@ -2424,6 +2424,10 @@
 
 #pragma mark - Properties
 
+- (RMLoadingTileView *)createLoadingTileView {
+    return [[RMLoadingTileView alloc] initWithFrame:self.bounds];
+}
+
 - (UIView *)backgroundView
 {
     return _backgroundView;
@@ -2440,7 +2444,7 @@
     if ( ! aView)
     {
         if ( ! _loadingTileView)
-            _loadingTileView = [[RMLoadingTileView alloc] initWithFrame:self.bounds];
+            _loadingTileView = [self createLoadingTileView];
 
         aView = _loadingTileView;
     }

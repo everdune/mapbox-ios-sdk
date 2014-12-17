@@ -37,6 +37,7 @@
 #import "RMMapTiledLayerView.h"
 #import "RMMapScrollView.h"
 #import "RMTileSourcesContainer.h"
+#import "RMLoadingTileView.h"
 
 @class RMProjection;
 @class RMFractalTileProjection;
@@ -538,5 +539,11 @@ typedef enum : NSUInteger {
 *   @param mode The mode used to track the user location. 
 *   @param animated Whether changes to the map center or rotation should be animated when the mode is changed. */
 - (void)setUserTrackingMode:(RMUserTrackingMode)mode animated:(BOOL)animated;
+
+/** Create the loading tile view
+ *
+ *  Useful for subclassing
+ */
+- (RMLoadingTileView *)createLoadingTileView;
 
 @end
