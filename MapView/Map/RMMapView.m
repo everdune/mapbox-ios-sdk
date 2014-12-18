@@ -3746,6 +3746,7 @@
         
         _mapScrollView.transform = _mapTransform;
         _overlayView.transform   = _mapTransform;
+        _loadingTileView.transform = _mapTransform;
         _compassButton.transform = _compassTransform;
         
     } else {
@@ -3775,6 +3776,7 @@
         
         _mapScrollView.transform = _mapTransform;
         _overlayView.transform   = _mapTransform;
+        _loadingTileView.transform = _mapTransform;
         _compassButton.transform = _compassTransform;
         
         _compassButton.alpha = self.hideCompass ? 0.0 : 1.0;
