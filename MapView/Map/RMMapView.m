@@ -1066,11 +1066,26 @@
 #pragma mark -
 #pragma mark Zoom
 
+- (RMProjectedRect)heuristicProjectedBounds
+{
+    CGRect screenBounds = [self bounds];
+
+    CGPoint screenCenter = CGPointMake(screenBounds.origin.x + screenBounds.size.width / 2.0f, screenBounds.origin.y + screenBounds.size.height / 2.0f);
+
+    RMProjectedPoint projectedCenter = [self pixelToProjectedPoint:screenCenter];
+
+    RMProjectedSize projectedSize = [self projectedViewSize];
+
+    double heuristicProjectedSize = 3.0F * (projectedSize.width + projectedSize.height);
+
+    return RMProjectedRectMake(projectedCenter.x - 0.5F * heuristicProjectedSize, projectedCenter.y - 0.5F * heuristicProjectedSize, heuristicProjectedSize, heuristicProjectedSize);
+}
+
 - (RMProjectedRect)projectedBounds
 {
     CGFloat x = _mapScrollView.contentOffset.x - self.centerOffset.width;
     CGFloat y = _mapScrollView.contentSize.height - (_mapScrollView.contentOffset.y + _mapScrollView.bounds.size.height) - self.centerOffset.height;
-    
+
     CGPoint bottomLeft = CGPointMake(x, y);
 
     RMProjectedRect planetBounds = _projection.planetBounds;
@@ -3016,13 +3031,7 @@
             return;
         }
 
-        double boundingBoxBuffer = (kZoomRectPixelBuffer * _metersPerPixel);
-
-        RMProjectedRect boundingBox = self.projectedBounds;
-        boundingBox.origin.x -= boundingBoxBuffer;
-        boundingBox.origin.y -= boundingBoxBuffer;
-        boundingBox.size.width += (2.0 * boundingBoxBuffer);
-        boundingBox.size.height += (2.0 * boundingBoxBuffer);
+        RMProjectedRect boundingBox = self.heuristicProjectedBounds;
 
         NSArray *annotationsToCorrect = [self.quadTree annotationsInProjectedRect:boundingBox
                                                          createClusterAnnotations:self.clusteringEnabled
