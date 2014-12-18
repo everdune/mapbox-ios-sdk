@@ -31,6 +31,9 @@
 #import "RMMapView.h"
 #import "RMAnnotation.h"
 
+
+#define DISABLE_CLIPPING
+
 @implementation RMShape
 {
     BOOL isFirstPoint, ignorePathUpdates;
@@ -179,17 +182,32 @@
     // Clip bound rect to screen bounds.
     // If bounds are not clipped, they won't display when you zoom in too much.
 
+
+#ifndef DISABLE_CLIPPING
+
     CGRect screenBounds = [mapView bounds];
+
+#endif
+
 
     // we start with the non-clipped bounds and clip them
     CGRect clippedBounds = nonClippedBounds;
 
+
+#ifndef DISABLE_CLIPPING
+
     float offset;
     const float outset = 150.0f; // provides a buffer off screen edges for when path is scaled or moved
+
+#endif
+
 
     CGPoint newPosition = self.annotation.position;
 
 //    RMLog(@"x:%f y:%f screen bounds: %f %f %f %f", newPosition.x, newPosition.y,  screenBounds.origin.x, screenBounds.origin.y, screenBounds.size.width, screenBounds.size.height);
+
+
+#ifndef DISABLE_CLIPPING
 
     // Clip top
     offset = newPosition.y + clippedBounds.origin.y - screenBounds.origin.y + outset;
@@ -220,6 +238,9 @@
     {
         clippedBounds.size.width -= offset;
     }
+
+#endif
+
 
     if (animated)
     {
@@ -271,11 +292,17 @@
 
     self.anchorPoint = clippedAnchorPoint;
 
+
+#ifndef DISABLE_CLIPPING
+
     if (self.annotation && [points count])
     {
         self.annotation.coordinate = ((CLLocation *)[points objectAtIndex:0]).coordinate;
         [self.annotation setBoundingBoxFromLocations:points];
     }
+
+#endif
+
 }
 
 #pragma mark -
