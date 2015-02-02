@@ -3188,17 +3188,29 @@
 
         if ( ! [annotation1.layer isKindOfClass:[RMMarker class]] &&   [annotation2.layer isKindOfClass:[RMMarker class]])
             return NSOrderedAscending;
-
-        // the rest in increasing y-position
-        //
-        CGPoint obj1Point = [self convertPoint:annotation1.position fromView:_overlayView];
-        CGPoint obj2Point = [self convertPoint:annotation2.position fromView:_overlayView];
-
-        if (obj1Point.y > obj2Point.y)
-            return NSOrderedDescending;
-
-        if (obj1Point.y < obj2Point.y)
-            return NSOrderedAscending;
+        
+        if (![annotation1.layer isKindOfClass:[RMMarker class]] && ![annotation2.layer isKindOfClass:[RMMarker class]]) {
+            // Comparing shapes
+            
+            if (annotation1.layer.zPosition > annotation2.layer.zPosition) {
+                return NSOrderedDescending;
+            }
+            
+            if (annotation1.layer.zPosition < annotation2.layer.zPosition) {
+                return NSOrderedAscending;
+            }
+        } else {
+            // the rest in increasing y-position
+            //
+            CGPoint obj1Point = [self convertPoint:annotation1.position fromView:_overlayView];
+            CGPoint obj2Point = [self convertPoint:annotation2.position fromView:_overlayView];
+            
+            if (obj1Point.y > obj2Point.y)
+                return NSOrderedDescending;
+            
+            if (obj1Point.y < obj2Point.y)
+                return NSOrderedAscending;
+        }
 
         return NSOrderedSame;
     }];
